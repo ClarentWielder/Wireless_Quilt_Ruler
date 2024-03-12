@@ -1,0 +1,87 @@
+<html>
+    <head>
+        <title>Quilt Measurement</title>
+    </head>
+    <body>
+        <h1>Welcome</h1>
+        <form method="get">
+            <label for="quilt-width">Quilt Width:</label><br>
+            <input type="text" id="quilt-width" name="quilt-width">
+            <button id="width-button" type="button" formaction="/measurement/width">
+                Measure width
+            </button><br>
+            <label for="quilt-height">Quilt height:</label><br>
+            <input type="text" id="quilt-height" name="quilt-height">
+            <button id="height-button" type="button" formaction="/measurement/height">
+                Measure Height
+            </button>
+            <br>
+            <label for="fabric-width">Fabric width:</label><br>
+            <input type="text" id="fabric-width" name="fabric-width" value="41"><br>
+            <label for="overage">Overage (one side):</label><br>
+            <input type="text" id="overage" name="overage" value="4"><br>
+            <button id="calculate-button" type="button">
+                Calculate
+            </button>
+        </form>    
+        <p>
+            Hotdog Style: <span id="display-hotdog">{{ hotdog }}</span><br>
+            Hamburger Style: <span id="display-hamburger">{{ hamburger }}</span><br>
+            TW: <span id="display-tw">{{ tw }}</span><br>
+            TH: <span id="display-th">{{ th }}</span><br>
+        </p>
+        <!--script type="text/javascript" src="/static/scripts.js"></script-->
+        <script>
+            function get_mixed_fraction(numerator, denominator){
+                /* Takes a numerator and a denominator to create a mixed fraction rounded up 
+                 * to the nearest 3rd, 4th, or 8th.*/
+                numerator = Number(numerator);
+                denominator = Number(denominator);
+                if(numerator<denominator){
+                    return String(numerator)+"/"+String(denominator);
+                }
+                let whole_part = 0;
+                let temp = numerator - denominator;
+                while(temp >= 0){
+                    temp = temp - denominator;
+                    whole_part = Number(whole_part) + 1;
+                }
+                remainder = temp + denominator;
+                if(remainder == 0){
+                    return String(whole_part)
+                }
+                mixed_fraction = String(whole_part)+" "+String(remainder)+"/"+String(denominator);
+                return String(mixed_fraction);
+            }
+            document.querySelector('#width-button').addEventListener('click', async (event) => {
+                event.preventDefault();
+                const response = await fetch('/measurement/width', { method: 'GET' });
+                const data = await response.text();
+                document.getElementById('quilt-width').value = data;
+            });
+            document.querySelector('#height-button').addEventListener('click', async (event) => {
+                event.preventDefault();
+                const response = await fetch('/measurement/height', { method: 'GET' });
+                const data = await response.text();
+                document.getElementById('quilt-height').value = data;
+            });
+            document.querySelector('#calculate-button').addEventListener('click', async (event) => {
+                event.preventDefault();
+                const quilt_width = Number(document.getElementById('quilt-width').value);
+                const height = Number(document.getElementById('quilt-height').value);
+                const fabric_width = Number(document.getElementById('fabric-width').value);
+                const overage = Number(document.getElementById('overage').value);
+                const total_width = quilt_width + (2*overage);
+                const total_height = height + (2*overage);
+                let hotdog_yardage = get_mixed_fraction((total_height * Math.ceil(quilt_width/fabric_width)),36);
+                let hamburger_yardage = get_mixed_fraction((total_width * Math.ceil(height/fabric_width)),36);
+                document.getElementById('display-hotdog').textContent = hotdog_yardage+" yards";
+                document.getElementById('display-hamburger').textContent = hamburger_yardage+" yards";
+                document.getElementById('display-tw').textContent = total_width;
+                document.getElementById('display-th').textContent = total_height;
+            });
+        </script>
+             
+    </body>
+</html>
+    

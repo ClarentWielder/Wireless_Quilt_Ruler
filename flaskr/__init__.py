@@ -1,6 +1,7 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 import os
 import random
+import QuiltFunctions as Quilt
 
 def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
@@ -15,16 +16,20 @@ def create_app(test_config=None):
     
     @app.route("/")
     def homepage():
-        return render_template('home.html')
+        user_agent = request.headers.get('User-Agent').lower()
+        if ("iphone" in user_agent) or ("android" in user_agent):
+            return render_template('mobile.index.html')
+        else:
+            return render_template('desktop.index.html')
 
     @app.route("/measurement/width", methods=['GET'])
     def get_width():
-        width = random.randint(36,72)
+        width = Quilt.get_width_measurement()
         return str(width)
 
     @app.route("/measurement/height")
     def get_height():
-        height = random.randint(48,120)
+        height = Quilt.get_height_measurement()
         return str(height)
 
     return app

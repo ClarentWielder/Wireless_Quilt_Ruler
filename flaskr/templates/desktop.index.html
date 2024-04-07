@@ -25,16 +25,65 @@
             </button>
         </form>    
         <p>
-            Hotdog Style: <span id="display-hotdog">{{ hotdog }}</span><br>
-            Hamburger Style: <span id="display-hamburger">{{ hamburger }}</span><br>
+            Vertical Seam: <span id="display-vs">{{ vs }}</span><br>
+            Horizontal Seam: <span id="display-hs">{{ hs }}</span><br>
             TW: <span id="display-tw">{{ tw }}</span><br>
             TH: <span id="display-th">{{ th }}</span><br>
         </p>
         <!--script type="text/javascript" src="/static/scripts.js"></script-->
         <script>
+            const quilt_rounding_table = {
+                0.125:{
+                    'fraction':"1/8",
+                    'inches':"4.5"
+                },
+                0.25:{
+                    'fraction':"1/4",
+                    'inches':"9"
+                },
+                0.33:{
+                    'fraction':"1/3",
+                    'inches':"12"
+                },
+                0.375:{
+                    'fraction':"3/8",
+                    'inches':"13.5"
+                },
+                0.5:{
+                    'fraction':"1/2",
+                    'inches':"18"
+                },
+                0.625:{
+                    'fraction':"5/8",
+                    'inches':"22.5"
+                },
+                0.66:{
+                    'fraction':"2/3",
+                    'inches':"24"
+                },
+                0.75:{
+                    'fraction':"3/4",
+                    'inches':"27"
+                },
+                0.875:{
+                    'fraction':"7/8",
+                    'inches':"31.5"
+                }
+            };
+
+            function round_fraction(numerator, denominator){
+                decimal = numerator/denominator;
+                for(rounded_decimal in quilt_rounding_table){
+                    if(decimal<rounded_decimal){
+                        return(quilt_rounding_table[rounded_decimal]['fraction']);
+                    }
+                }
+                console.log("None");
+                return "round_up"
+            }
             function get_mixed_fraction(numerator, denominator){
                 /* Takes a numerator and a denominator to create a mixed fraction rounded up 
-                 * to the nearest 3rd, 4th, or 8th.*/
+                 * to the nearest half, 3rd, 4th, or 8th.*/
                 numerator = Number(numerator);
                 denominator = Number(denominator);
                 if(numerator<denominator){
@@ -50,7 +99,14 @@
                 if(remainder == 0){
                     return String(whole_part)
                 }
-                mixed_fraction = String(whole_part)+" "+String(remainder)+"/"+String(denominator);
+                fraction = round_fraction(remainder,denominator);
+                if(fraction == "round_up"){
+                    mixed_fraction = String(whole_part + 1);
+                }
+                else{
+                    mixed_fraction = String(whole_part)+" "+String(fraction);
+                }
+                //mixed_fraction = String(whole_part)+" "+String(remainder)+"/"+String(denominator);
                 return String(mixed_fraction);
             }
             document.querySelector('#width-button').addEventListener('click', async (event) => {
@@ -73,10 +129,10 @@
                 const overage = Number(document.getElementById('overage').value);
                 const total_width = quilt_width + (2*overage);
                 const total_height = height + (2*overage);
-                let hotdog_yardage = get_mixed_fraction((total_height * Math.ceil(quilt_width/fabric_width)),36);
-                let hamburger_yardage = get_mixed_fraction((total_width * Math.ceil(height/fabric_width)),36);
-                document.getElementById('display-hotdog').textContent = hotdog_yardage+" yards";
-                document.getElementById('display-hamburger').textContent = hamburger_yardage+" yards";
+                let vs_yardage = get_mixed_fraction((total_height * Math.ceil(total_width/fabric_width)),36);
+                let hs_yardage = get_mixed_fraction((total_width * Math.ceil(total_height/fabric_width)),36);
+                document.getElementById('display-vs').textContent = vs_yardage+" yards";
+                document.getElementById('display-hs').textContent = hs_yardage+" yards";
                 document.getElementById('display-tw').textContent = total_width;
                 document.getElementById('display-th').textContent = total_height;
             });
